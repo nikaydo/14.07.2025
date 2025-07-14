@@ -56,22 +56,22 @@ func (h *Handlers) AddToTask(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		if _, err := filework.GetFileFromUrl(i, true); err != nil {
-			badUrl += i + fmt.Sprintf("file url not valid %v. ", err)
+			badUrl += i + fmt.Sprintf(" file url not valid %v. ", err)
 			continue
 		}
-		if err := zip.AppendUrl(url); err != nil {
+		if err := zip.AppendUrl(i); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintf(w, "%v", err)
 			continue
 		}
 	}
+
 	if badUrl != "" {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, "%s", badUrl)
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
-
 }
 
 func (h *Handlers) StatusTask(w http.ResponseWriter, r *http.Request) {
@@ -88,7 +88,7 @@ func (h *Handlers) StatusTask(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Task not found")
 		return
 	}
-	if len(z.Urls) <= h.Env.MAX_FILES_IN_ZIP {
+	if len(z.Urls) <= h.Env.MAX_FILES_IN_ZIP-1 {
 		s := z.Status
 		fmt.Fprintf(w, *s)
 		return
@@ -101,7 +101,6 @@ func (h *Handlers) StatusTask(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Error: %v", err)
 		return
 	}
-
 	_, err = w.Write(file)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
